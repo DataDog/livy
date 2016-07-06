@@ -29,7 +29,7 @@ object SessionServletSpec {
 
   val PROXY_USER = "proxyUser"
 
-  class MockSession(id: Int, owner: String, livyConf: LivyConf)
+  class MockSession(id: String, owner: String, livyConf: LivyConf)
     extends Session(id, owner, livyConf) {
 
     override val proxyUser = None
@@ -42,7 +42,7 @@ object SessionServletSpec {
 
   }
 
-  case class MockSessionView(id: Int, owner: String, logs: Seq[String])
+  case class MockSessionView(id: String, owner: String, logs: Seq[String])
 
 }
 
@@ -72,7 +72,7 @@ class SessionServletSpec
   private val aliceHeaders = makeUserHeaders("alice")
   private val bobHeaders = makeUserHeaders("bob")
 
-  private def delete(id: Int, headers: Map[String, String], expectedStatus: Int): Unit = {
+  private def delete(id: String, headers: Map[String, String], expectedStatus: Int): Unit = {
     jdelete[Map[String, Any]](s"/$id", headers = headers, expectedStatus = expectedStatus) { _ =>
       // Nothing to do.
     }

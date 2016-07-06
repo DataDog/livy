@@ -46,13 +46,13 @@ class JobApiSpec extends BaseInteractiveServletSpec {
 
   private val PROXY = "__proxy__"
 
-  private var sessionId: Int = -1
+  private var sessionId: String = "-1"
 
   override def createServlet(): InteractiveSessionServlet = {
     new InteractiveSessionServlet(createConf()) with RemoteUserOverride
   }
 
-  def withSessionId(desc: String)(fn: (Int) => Unit): Unit = {
+  def withSessionId(desc: String)(fn: (String) => Unit): Unit = {
     it(desc) {
       assume(sessionId != -1, "No active session.")
       fn(sessionId)
@@ -165,7 +165,7 @@ class JobApiSpec extends BaseInteractiveServletSpec {
 
   }
 
-  private def waitForIdle(id: Int): Unit = {
+  private def waitForIdle(id: String): Unit = {
     eventually(timeout(1 minute), interval(100 millis)) {
       jget[SessionInfo](s"/$id") { status =>
         status.state should be (SessionState.Idle().toString())
@@ -173,11 +173,11 @@ class JobApiSpec extends BaseInteractiveServletSpec {
     }
   }
 
-  private def deleteSession(id: Int): Unit = {
+  private def deleteSession(id: String): Unit = {
     jdelete[Map[String, Any]](s"/$id", headers = adminHeaders) { _ => }
   }
 
-  private def testResourceUpload(cmd: String, sessionId: Int): Unit = {
+  private def testResourceUpload(cmd: String, sessionId: String): Unit = {
     val f = File.createTempFile("uploadTestFile", cmd)
     val conf = createConf()
 
@@ -196,13 +196,13 @@ class JobApiSpec extends BaseInteractiveServletSpec {
     }
   }
 
-  private def testJobSubmission(sid: Int, sync: Boolean): Unit = {
+  private def testJobSubmission(sid: String, sync: Boolean): Unit = {
     val result = runJob(sid, new Echo(42), sync = sync)
     result should be (42)
   }
 
   private def runJob[T](
-      sid: Int,
+      sid: String,
       job: Job[T],
       sync: Boolean = false,
       headers: Map[String, String] = defaultHeaders): T = {

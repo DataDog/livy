@@ -47,7 +47,7 @@ class HttpClient implements LivyClient {
 
   private final HttpConf config;
   private final LivyConnection conn;
-  private final int sessionId;
+  private final String sessionId;
   private final ScheduledExecutorService executor;
   private final Serializer serializer;
 
@@ -69,7 +69,7 @@ class HttpClient implements LivyClient {
           m.group(1), uri.getQuery(), uri.getFragment());
 
         this.conn = new LivyConnection(base, httpConf);
-        this.sessionId = Integer.parseInt(m.group(2));
+        this.sessionId = m.group(2);
         conn.post(null, SessionInfo.class, "/%d/connect", sessionId);
       } else {
         Map<String, String> sessionConf = new HashMap<>();
@@ -187,7 +187,7 @@ class HttpClient implements LivyClient {
   }
 
   // For testing.
-  int getSessionId() {
+  String getSessionId() {
     return sessionId;
   }
 

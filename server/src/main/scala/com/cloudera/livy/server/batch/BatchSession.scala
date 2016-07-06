@@ -27,7 +27,7 @@ import com.cloudera.livy.sessions.{Session, SessionState}
 import com.cloudera.livy.utils.SparkProcessBuilder
 
 class BatchSession(
-    id: Int,
+    id: String,
     owner: String,
     override val proxyUser: Option[String],
     livyConf: LivyConf,

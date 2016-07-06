@@ -36,14 +36,20 @@ class SessionManager[S <: Session](val livyConf: LivyConf) extends Logging {
   private implicit def executor: ExecutionContext = ExecutionContext.global
 
   private[this] final val idCounter = new AtomicInteger()
-  private[this] final val sessions = mutable.Map[Int, S]()
+  private[this] final val sessions = mutable.Map[String, S]()
 
   private[this] final val sessionTimeout =
     TimeUnit.MILLISECONDS.toNanos(livyConf.getTimeAsMs(SessionManager.SESSION_TIMEOUT))
 
   new GarbageCollector().start()
 
-  def nextId(): Int = idCounter.getAndIncrement()
+  def nextId(): String = {
+    var id = idCounter.getAndIncrement()
+    while (sessions.contains(id.toString)) {
+      id = idCounter.getAndIncrement()
+    }
+    id.toString
+  }
 
   def register(session: S): S = {
     info(s"Registering new session ${session.id}")
@@ -53,13 +59,15 @@ class SessionManager[S <: Session](val livyConf: LivyConf) extends Logging {
     session
   }
 
-  def get(id: Int): Option[S] = sessions.get(id)
+  def get(id: Int): Option[S] = get(id.toString)
+
+  def get(id: String): Option[S] = sessions.get(id)
 
   def size(): Int = sessions.size
 
   def all(): Iterable[S] = sessions.values
 
-  def delete(id: Int): Option[Future[Unit]] = {
+  def delete(id: String): Option[Future[Unit]] = {
     get(id).map(delete)
   }
 

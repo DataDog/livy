@@ -41,7 +41,7 @@ object Session {
 
 }
 
-abstract class Session(val id: Int, val owner: String, val livyConf: LivyConf) extends Logging {
+abstract class Session(val id: String, val owner: String, val livyConf: LivyConf) extends Logging {
 
   import Session._
 

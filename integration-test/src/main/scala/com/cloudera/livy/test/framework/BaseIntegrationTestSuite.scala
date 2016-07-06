@@ -64,7 +64,7 @@ abstract class BaseIntegrationTestSuite extends FunSuite with Matchers with Befo
     .find(new File(_).getName().startsWith("livy-test-lib-"))
     .getOrElse(throw new Exception(s"Cannot find test lib in ${sys.props("java.class.path")}"))
 
-  protected def waitTillSessionIdle(sessionId: Int): Unit = {
+  protected def waitTillSessionIdle(sessionId: String): Unit = {
     eventually(timeout(1 minute), interval(100 millis)) {
       val curState = livyClient.getSessionStatus(sessionId)
       assert(curState === SessionState.Idle().toString)
@@ -110,7 +110,7 @@ abstract class BaseIntegrationTestSuite extends FunSuite with Matchers with Befo
 
   class LivyRestClient(httpClient: AsyncHttpClient, livyEndpoint: String) {
 
-    def startSession(kind: Kind, sparkConf: Map[String, String] = Map()): Int = {
+    def startSession(kind: Kind, sparkConf: Map[String, String] = Map()): String = {
       val requestBody = new CreateInteractiveRequest()
       requestBody.kind = kind
       requestBody.conf = sparkConf
@@ -120,20 +120,20 @@ abstract class BaseIntegrationTestSuite extends FunSuite with Matchers with Befo
         .execute()
         .get()
 
-      val sessionId: Int = withClue(rep.getResponseBody) {
+      val sessionId: String = withClue(rep.getResponseBody) {
         rep.getStatusCode should equal(HttpServletResponse.SC_CREATED)
         val newSession = mapper.readValue(rep.getResponseBodyAsStream, classOf[Map[String, Any]])
         newSession should contain key ("id")
 
-        newSession("id").asInstanceOf[Int]
+        newSession("id").asInstanceOf[String]
       }
 
       sessionId
     }
 
     /** Stops a session. If an id < 0 is provided, do nothing. */
-    def stopSession(sessionId: Int): Unit = {
-      if (sessionId >= 0) {
+    def stopSession(sessionId: String): Unit = {
+      if (sessionId != null) {
         val sessionUri = s"$livyEndpoint/sessions/$sessionId"
         httpClient.prepareDelete(sessionUri).execute().get()
 
@@ -144,7 +144,7 @@ abstract class BaseIntegrationTestSuite extends FunSuite with Matchers with Befo
       }
     }
 
-    def getSessionStatus(sessionId: Int): String = {
+    def getSessionStatus(sessionId: String): String = {
       val rep = httpClient.prepareGet(s"$livyEndpoint/sessions/$sessionId").execute().get()
       withClue(rep.getResponseBody) {
         rep.getStatusCode should equal(HttpServletResponse.SC_OK)
@@ -158,7 +158,7 @@ abstract class BaseIntegrationTestSuite extends FunSuite with Matchers with Befo
       }
     }
 
-    def runStatement(sessionId: Int, stmt: String): Int = {
+    def runStatement(sessionId: String, stmt: String): Int = {
       val requestBody = Map("code" -> stmt)
       val rep = httpClient.preparePost(s"$livyEndpoint/sessions/$sessionId/statements")
         .setBody(mapper.writeValueAsString(requestBody))
@@ -175,7 +175,7 @@ abstract class BaseIntegrationTestSuite extends FunSuite with Matchers with Befo
       stmtId
     }
 
-    def getStatementResult(sessionId: Int, stmtId: Int): Either[String, StatementError] = {
+    def getStatementResult(sessionId: String, stmtId: Int): Either[String, StatementError] = {
       val rep = httpClient.prepareGet(s"$livyEndpoint/sessions/$sessionId/statements/$stmtId")
         .execute()
         .get()

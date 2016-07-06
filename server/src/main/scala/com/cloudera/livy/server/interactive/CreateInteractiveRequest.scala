@@ -22,6 +22,7 @@ import com.cloudera.livy.sessions.{Kind, Spark}
 
 class CreateInteractiveRequest {
 
+  var id: Option[String] = None
   var kind: Kind = Spark()
   var proxyUser: Option[String] = None
   var jars: List[String] = List()

@@ -191,7 +191,7 @@ abstract class SessionServlet[S <: Session](livyConf: LivyConf)
   protected def withSession(fn: (S => Any)): Any = doWithSession(fn, false)
 
   private def doWithSession(fn: (S => Any), allowAll: Boolean): Any = {
-    val sessionId = params("id").toInt
+    val sessionId = params("id")
     sessionManager.get(sessionId) match {
       case Some(session) =>
         if (allowAll || hasAccess(session.owner, request)) {

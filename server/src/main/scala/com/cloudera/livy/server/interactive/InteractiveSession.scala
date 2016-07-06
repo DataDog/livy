@@ -48,7 +48,7 @@ object InteractiveSession {
 }
 
 class InteractiveSession(
-    id: Int,
+    id: String,
     owner: String,
     override val proxyUser: Option[String],
     livyConf: LivyConf,
@@ -70,9 +70,11 @@ class InteractiveSession(
     val conf = prepareConf(request.conf, request.jars, request.files, request.archives,
       request.pyFiles)
 
+    val appName = request.name.getOrElse(s"livy-session-$id")
+
     info(s"Creating LivyClient for sessionId: $id")
     val builder = new LivyClientBuilder()
-      .setConf("spark.app.name", s"livy-session-$id")
+      .setConf("spark.app.name", appName)
       .setAll(conf.asJava)
       .setConf("livy.client.sessionId", id.toString)
       .setConf(RSCConf.Entry.DRIVER_CLASS.key(), "com.cloudera.livy.repl.ReplDriver")
