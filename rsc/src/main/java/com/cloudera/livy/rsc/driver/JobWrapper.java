@@ -116,6 +116,7 @@ public class JobWrapper<T> implements Callable<Void> {
 
   boolean cancel() {
     state = JobHandle.State.CANCELLED;
+    driver.jobContext().sc().cancelJobGroup(jobId);
     return future == null || future.cancel(true);
   }
 

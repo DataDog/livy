@@ -326,6 +326,7 @@ public class RSCDriver extends BaseProtocol {
 
   public void submit(JobWrapper<?> job) {
     if (jc != null) {
+      jc.sc().setJobGroup(job.jobId, "Job group for " + job.jobId, true);
       job.submit(executor);
       return;
     }
