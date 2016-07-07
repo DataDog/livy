@@ -476,10 +476,16 @@ Request Body
 +================+================================================+=================+
 | kind           | The session kind (required)                    | `session kind`_ |
 +----------------+------------------------------------------------+-----------------+
+| id             | Id of new session, if it's empty, a counter    | string          |
+|                | will be used                                   |                 |
++----------------+------------------------------------------------+-----------------+
+| name           | spark.app.name                                 | string          |
++----------------+------------------------------------------------+-----------------+
 | proxyUser      | User to impersonate when starting the session  | string          |
 +----------------+------------------------------------------------+-----------------+
 | conf           | Spark configuration properties                 | Map of key=val  |
 +----------------+------------------------------------------------+-----------------+
+
 
 
 Response Body
@@ -571,6 +577,39 @@ Response Body
 
 The `statement`_ object.
 
+POST /sessions/{sessionId}/run-class
+------------------------------------
+
+Runs a class in a session. The class should already be in the class path,
+you may pass a list of jars while creating a session.
+
+Request Body
+^^^^^^^^^^^^
+
++-----------+------------------------------------+-----------------+
+| name      | description                        | type            |
++===========+====================================+=================+
+| className | The class to run                   | string          |
++-----------+------------------------------------+-----------------+
+| arguments | Optional list of arguments to pass | list of strings |
++-----------+------------------------------------+-----------------+
+
+Response Body
+^^^^^^^^^^^^^
+
++------------+------------------------+---------+
+| name       | description            | type    |
++============+========================+=========+
+| id         | job id in the session  | integer |
++------------+------------------------+---------+
+| state      | Job state              | string  |
++------------+------------------------+---------+
+| result     | Job's result           | string  |
++------------+------------------------+---------+
+| error      | Job's error            | string  |
++------------+------------------------+---------+
+
+
 
 GET /batches
 ------------
@@ -596,6 +635,8 @@ Request Body
 +-------------+---------------------------------------------------+-----------------+
 | name        | description                                       | type            |
 +=============+===================================================+=================+
+| id          | ID for the new batch job                          | string          |
++-------------+---------------------------------------------------+-----------------+
 | file        | File containing the application to execute        | path (required) |
 +-------------+---------------------------------------------------+-----------------+
 | proxyUser   | User to impersonate when running the job          | string          |
