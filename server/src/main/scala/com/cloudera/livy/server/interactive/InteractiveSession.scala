@@ -311,6 +311,16 @@ class InteractiveSession(
     val opId = operationCounter.incrementAndGet()
     operations(opId) = future
     opId
-   }
+  }
+
+  def runClass(className: String, args: Array[String]): Long = {
+    ensureRunning()
+    recordActivity()
+
+    val future = client.runClass(className, args)
+    val opId = operationCounter.incrementAndGet()
+    operations(opId) = future
+    opId
+  }
 
 }

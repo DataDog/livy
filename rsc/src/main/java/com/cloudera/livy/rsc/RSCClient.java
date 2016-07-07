@@ -250,6 +250,10 @@ public class RSCClient implements LivyClient {
     return protocol.bypass(serializedJob, sync);
   }
 
+  public String runClass(String className, String[] arguments) {
+    return protocol.runClass(className, arguments);
+  }
+
   public Future<BypassJobStatus> getBypassJobStatus(String id) {
     return protocol.getBypassJobStatus(id);
   }
@@ -324,6 +328,13 @@ public class RSCClient implements LivyClient {
     String bypass(ByteBuffer serializedJob, boolean sync) {
       String jobId = UUID.randomUUID().toString();
       Object msg = new BypassJobRequest(jobId, BufferUtils.toByteArray(serializedJob), sync);
+      deferredCall(msg, Void.class);
+      return jobId;
+    }
+
+    String runClass(String className, String[] arguments) {
+      String jobId = UUID.randomUUID().toString();
+      Object msg = new RunClassRequest(jobId, className, arguments);
       deferredCall(msg, Void.class);
       return jobId;
     }

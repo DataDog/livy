@@ -76,6 +76,22 @@ public abstract class BaseProtocol extends RpcDispatcher {
 
   }
 
+  protected static class RunClassRequest {
+    public final String id;
+    public final String className;
+    public final String[] arguments;
+
+    public RunClassRequest(String id, String className, String[] arguments) {
+      this.id = id;
+      this.className = className;
+      this.arguments = arguments;
+    }
+
+    public RunClassRequest() {
+      this(null, null, null);
+    }
+  }
+
   protected static class GetBypassJobStatus {
 
     public final String id;

@@ -40,10 +40,16 @@ class JobContextImpl implements JobContext {
   private volatile SQLContext sqlctx;
   private volatile HiveContext hivectx;
   private volatile JavaStreamingContext streamingctx;
+  private volatile String[] arguments;
 
   public JobContextImpl(JavaSparkContext sc, File localTmpDir) {
+    this(sc, localTmpDir, null);
+  }
+
+  public JobContextImpl(JavaSparkContext sc, File localTmpDir, String[] arguments) {
     this.sc = sc;
     this.localTmpDir = localTmpDir;
+    this.arguments = arguments;
   }
 
   @Override
@@ -97,6 +103,11 @@ class JobContextImpl implements JobContext {
   @Override
   public File getLocalTmpDir() {
     return localTmpDir;
+  }
+
+  @Override
+  public String[] arguments() {
+    return arguments;
   }
 
   public synchronized void stop() {

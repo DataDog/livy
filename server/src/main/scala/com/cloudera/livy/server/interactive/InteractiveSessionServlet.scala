@@ -25,12 +25,10 @@ import javax.servlet.http.HttpServletRequest
 import scala.collection.JavaConverters._
 import scala.concurrent._
 import scala.concurrent.duration._
-
 import org.json4s.jackson.Json4sScalaModule
 import org.scalatra._
 import org.scalatra.servlet.FileUploadSupport
-
-import com.cloudera.livy.{ExecuteRequest, JobHandle, LivyConf, Logging}
+import com.cloudera.livy.{ExecuteRequest, JobHandle, LivyConf, Logging, SubmitClass}
 import com.cloudera.livy.client.common.HttpMessages._
 import com.cloudera.livy.server.SessionServlet
 import com.cloudera.livy.sessions._
@@ -147,6 +145,25 @@ class InteractiveSessionServlet(livyConf: LivyConf)
     withSession { session =>
       session.recordActivity()
       Ok(clientSessionView(session, request))
+    }
+  }
+
+  jpost[SubmitClass]("/:id/run-class") { req =>
+    withSession { session =>
+      try {
+        require(req.className != null, "no classname provided.")
+        val args: Array[String] = if (req.args == null) {
+          Array()
+        } else {
+          req.args
+        }
+        val jobId = session.runClass(req.className, args)
+        Created(new JobStatus(jobId, JobHandle.State.SENT, null, null))
+      } catch {
+        case e: Throwable =>
+          e.printStackTrace()
+        throw e
+      }
     }
   }
 

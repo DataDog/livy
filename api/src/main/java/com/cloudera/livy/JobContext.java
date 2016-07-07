@@ -63,4 +63,8 @@ public interface JobContext {
    */
   File getLocalTmpDir();
 
+  /**
+   * Returns a array of arguments for the job;
+   */
+  String[] arguments();
 }

@@ -23,6 +23,7 @@ sealed trait MsgType
 object MsgType {
   case object execute_request extends MsgType
   case object execute_reply extends MsgType
+  case object submit_class extends MsgType
 }
 
 case class Msg[T <: Content](msg_type: MsgType, content: T)
@@ -62,3 +63,7 @@ case class ExecuteReplyError(execution_count: Int,
 case class ExecuteResponse(id: Int, input: Seq[String], output: Seq[String])
 
 case class ShutdownRequest() extends Content
+
+case class SubmitClass(className: String, args: Array[String]) extends Content {
+  val msg_type = MsgType.submit_class
+}
