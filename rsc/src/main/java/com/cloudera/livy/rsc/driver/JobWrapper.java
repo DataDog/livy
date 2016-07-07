@@ -17,29 +17,37 @@
 
 package com.cloudera.livy.rsc.driver;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.cloudera.livy.Job;
+import com.cloudera.livy.JobContext;
+import com.cloudera.livy.JobHandle;
+import com.cloudera.livy.rsc.BypassJobStatus;
+import com.cloudera.livy.rsc.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.spark.api.java.JavaFutureAction;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.cloudera.livy.Job;
-
 public class JobWrapper<T> implements Callable<Void> {
-
   private static final Logger LOG = LoggerFactory.getLogger(JobWrapper.class);
 
   public final String jobId;
 
   private final RSCDriver driver;
   private final Job<T> job;
+  private final String className;
+  private final String[] arguments;
   private final AtomicInteger completed;
+
+  private volatile T result;
+  protected volatile Throwable error;
+  protected volatile JobHandle.State state;
 
   private Future<?> future;
 
@@ -48,13 +56,39 @@ public class JobWrapper<T> implements Callable<Void> {
     this.jobId = jobId;
     this.job = job;
     this.completed = new AtomicInteger();
+
+    this.className = null;
+    this.arguments = null;
+
+    state = JobHandle.State.QUEUED;
   }
 
+  JobWrapper(RSCDriver driver, String jobId, String className, String[] arguments) {
+    this.driver = driver;
+    this.jobId = jobId;
+    this.className = className;
+    this.arguments = arguments;
+    this.completed = new AtomicInteger();
+
+    this.job = null;
+
+    state = JobHandle.State.QUEUED;
+  }
+
+  @SuppressWarnings("unchecked")
   @Override
   public Void call() throws Exception {
     try {
       jobStarted();
-      T result = job.call(driver.jobContext());
+      state = JobHandle.State.STARTED;
+
+      if (job != null) {
+        result = job.call(driver.jobContext());
+      } else {
+        result = (T) Class.forName(className).getMethod("call", JobContext.class, String[].class)
+             .invoke(null, driver.jobContext(), arguments);
+      }
+
       finished(result, null);
     } catch (Throwable t) {
       // Catch throwables in a best-effort to report job status back to the client. It's
@@ -81,14 +115,18 @@ public class JobWrapper<T> implements Callable<Void> {
   }
 
   boolean cancel() {
-    return future != null ? future.cancel(true) : true;
+    state = JobHandle.State.CANCELLED;
+    driver.jobContext().sc().cancelJobGroup(jobId);
+    return future == null || future.cancel(true);
   }
 
   protected void finished(T result, Throwable error) {
     if (error == null) {
       driver.jobFinished(jobId, result, null);
+      state = JobHandle.State.SUCCEEDED;
     } else {
       driver.jobFinished(jobId, null, error);
+      state = JobHandle.State.FAILED;
     }
   }
 
@@ -96,4 +134,21 @@ public class JobWrapper<T> implements Callable<Void> {
     driver.jobStarted(jobId);
   }
 
+  public static byte[] serialize(Object obj) throws IOException {
+    try(ByteArrayOutputStream b = new ByteArrayOutputStream()){
+      try(ObjectOutputStream o = new ObjectOutputStream(b)){
+        o.writeObject(obj);
+      }
+      return b.toByteArray();
+    }
+  }
+
+  synchronized BypassJobStatus getStatus() {
+    String stackTrace = error != null ? Utils.stackTraceAsString(error) : null;
+    try {
+      return new BypassJobStatus(state, serialize(result), stackTrace);
+    } catch (IOException e) {
+      return new BypassJobStatus(state, null, stackTrace);
+    }
+  }
 }

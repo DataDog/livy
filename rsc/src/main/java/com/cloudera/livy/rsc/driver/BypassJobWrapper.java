@@ -27,8 +27,6 @@ import com.cloudera.livy.rsc.Utils;
 class BypassJobWrapper extends JobWrapper<byte[]> {
 
   private volatile byte[] result;
-  private volatile Throwable error;
-  private volatile JobHandle.State state;
   private volatile List<Integer> newSparkJobs;
 
   BypassJobWrapper(RSCDriver driver, String jobId, byte[] serializedJob) {

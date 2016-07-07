@@ -77,7 +77,7 @@ public class RSCDriver extends BaseProtocol {
   private final Collection<Rpc> clients;
 
   final Map<String, JobWrapper<?>> activeJobs;
-  private final Collection<BypassJobWrapper> bypassJobs;
+  private final Collection<JobWrapper> bypassJobs;
 
   private RpcServer server;
   private volatile JobContextImpl jc;
@@ -326,6 +326,7 @@ public class RSCDriver extends BaseProtocol {
 
   public void submit(JobWrapper<?> job) {
     if (jc != null) {
+      jc.sc().setJobGroup(job.jobId, "Job group for " + job.jobId, true);
       job.submit(executor);
       return;
     }
@@ -375,6 +376,14 @@ public class RSCDriver extends BaseProtocol {
     submit(wrapper);
   }
 
+  public void handle(ChannelHandlerContext ctx, RunClassRequest msg) {
+    LOG.info("Received job request {}", msg.id);
+    JobWrapper wrapper = new JobWrapper<>(this, msg.id, msg.className, msg.arguments);
+    bypassJobs.add(wrapper);
+    activeJobs.put(msg.id, wrapper);
+    submit(wrapper);
+  }
+
   public void handle(ChannelHandlerContext ctx, BypassJobRequest msg) throws Exception {
     LOG.info("Received bypass job request {}", msg.id);
     BypassJobWrapper wrapper = new BypassJobWrapper(this, msg.id, msg.serializedJob);
@@ -400,8 +409,8 @@ public class RSCDriver extends BaseProtocol {
   }
 
   public BypassJobStatus handle(ChannelHandlerContext ctx, GetBypassJobStatus msg) {
-    for (Iterator<BypassJobWrapper> it = bypassJobs.iterator(); it.hasNext();) {
-      BypassJobWrapper job = it.next();
+    for (Iterator<JobWrapper> it = bypassJobs.iterator(); it.hasNext();) {
+      JobWrapper job = it.next();
       if (job.jobId.equals(msg.id)) {
         BypassJobStatus status = job.getStatus();
         switch (status.state) {
