@@ -35,7 +35,7 @@ import static com.cloudera.livy.client.http.HttpConf.Entry.*;
 
 class JobHandleImpl<T> extends AbstractJobHandle<T> {
 
-  private final long sessionId;
+  private final String sessionId;
   private final LivyConnection conn;
   private final ScheduledExecutorService executor;
   private final Object lock;
@@ -55,7 +55,7 @@ class JobHandleImpl<T> extends AbstractJobHandle<T> {
   JobHandleImpl(
       HttpConf config,
       LivyConnection conn,
-      long sessionId,
+      String sessionId,
       ScheduledExecutorService executor,
       Serializer s) {
     this.conn = conn;

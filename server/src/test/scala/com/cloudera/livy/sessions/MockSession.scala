@@ -22,7 +22,7 @@ import java.net.URI
 
 import com.cloudera.livy.LivyConf
 
-class MockSession(id: Int, owner: String, conf: LivyConf) extends Session(id, owner, conf) {
+class MockSession(id: String, owner: String, conf: LivyConf) extends Session(id, owner, conf) {
   override val proxyUser = None
 
   override protected def stopSession(): Unit = ()

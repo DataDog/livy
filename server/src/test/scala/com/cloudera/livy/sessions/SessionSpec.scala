@@ -30,7 +30,7 @@ class SessionSpec extends FunSuite {
     val conf = new LivyConf(false)
     conf.hadoopConf.set("fs.defaultFS", "dummy:///")
 
-    val session = new MockSession(0, null, conf)
+    val session = new MockSession("0", null, conf)
 
     val uris = Seq("http://example.com/foo", "hdfs:/bar", "/baz")
     val expected = Seq(uris(0), uris(1), "dummy:///baz")
@@ -45,7 +45,7 @@ class SessionSpec extends FunSuite {
     val conf = new LivyConf(false)
     conf.set(LivyConf.LOCAL_FS_WHITELIST, "/allowed/,/also_allowed")
 
-    val session = new MockSession(0, null, conf)
+    val session = new MockSession("0", null, conf)
 
     Seq("/allowed/file", "/also_allowed/file").foreach { path =>
       assert(session.resolveURI(new URI(path)) === new URI("file://" + path))
@@ -63,7 +63,7 @@ class SessionSpec extends FunSuite {
     conf.hadoopConf.set("fs.defaultFS", "dummy:///")
     conf.set(LivyConf.LOCAL_FS_WHITELIST, "/allowed")
 
-    val session = new MockSession(0, null, conf)
+    val session = new MockSession("0", null, conf)
 
     // Test baseline.
     assert(session.prepareConf(Map(), Nil, Nil, Nil, Nil) === Map("spark.master" -> "local"))

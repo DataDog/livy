@@ -54,7 +54,7 @@ class InteractiveSessionSpec extends FunSpec with Matchers with BeforeAndAfterAl
       SparkLauncher.DRIVER_EXTRA_CLASSPATH -> sys.props("java.class.path"),
       RSCConf.Entry.LIVY_JARS.key() -> ""
     )
-    new InteractiveSession(0, null, None, livyConf, req)
+    new InteractiveSession("0", null, None, livyConf, req)
   }
 
   override def afterAll(): Unit = {

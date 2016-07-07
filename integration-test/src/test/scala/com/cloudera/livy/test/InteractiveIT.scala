@@ -31,11 +31,11 @@ import com.cloudera.livy.sessions._
 import com.cloudera.livy.test.framework.{BaseIntegrationTestSuite, StatementError}
 
 class InteractiveIT extends BaseIntegrationTestSuite with BeforeAndAfter {
-  private var sessionId: Int = -1
+  private var sessionId = "-1"
 
   after {
     livyClient.stopSession(sessionId)
-    sessionId = -1
+    sessionId = "-1"
   }
 
   test("basic interactive session") {

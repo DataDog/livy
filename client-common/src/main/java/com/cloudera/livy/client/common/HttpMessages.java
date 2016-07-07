@@ -53,14 +53,14 @@ public class HttpMessages {
 
   public static class SessionInfo implements ClientMessage {
 
-    public final int id;
+    public final String id;
     public final String owner;
     public final String proxyUser;
     public final String state;
     public final String kind;
     public final List<String> log;
 
-    public SessionInfo(int id, String owner, String proxyUser, String state, String kind,
+    public SessionInfo(String id, String owner, String proxyUser, String state, String kind,
         List<String> log) {
       this.id = id;
       this.owner = owner;
@@ -71,7 +71,7 @@ public class HttpMessages {
     }
 
     private SessionInfo() {
-      this(-1, null, null, null, null, null);
+      this("-1", null, null, null, null, null);
     }
 
   }

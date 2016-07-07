@@ -48,7 +48,8 @@ class InteractiveSessionServlet(livyConf: LivyConf)
   override protected def createSession(req: HttpServletRequest): InteractiveSession = {
     val createRequest = bodyAs[CreateInteractiveRequest](req)
     val proxyUser = checkImpersonation(createRequest.proxyUser, req)
-    new InteractiveSession(sessionManager.nextId(), remoteUser(req), proxyUser, livyConf,
+    val sessionId = createRequest.id.getOrElse(sessionManager.nextId())
+    new InteractiveSession(sessionId, remoteUser(req), proxyUser, livyConf,
       createRequest)
   }
 

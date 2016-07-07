@@ -50,7 +50,7 @@ private class SessionList {
 class JobApiIT extends BaseIntegrationTestSuite with BeforeAndAfterAll with Logging {
 
   private var client: LivyClient = _
-  private var sessionId: Int = _
+  private var sessionId: String = _
   private var client2: LivyClient = _
 
   override def afterAll(): Unit = {
@@ -201,7 +201,7 @@ class JobApiIT extends BaseIntegrationTestSuite with BeforeAndAfterAll with Logg
       fail("Should not have been able to connect to destroyed session.")
     }
 
-    sessionId = -1
+    sessionId = "-1"
   }
 
   private def waitFor[T](future: JFuture[T]): T = {
