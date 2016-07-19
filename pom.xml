@@ -43,7 +43,7 @@
 
   <properties>
     <hadoop.version>2.6.0-cdh5.5.0</hadoop.version>
-    <spark.version>1.5.0-cdh5.5.0</spark.version>
+    <spark.version>1.6.2</spark.version>
     <commons-codec.version>1.9</commons-codec.version>
     <httpclient.version>4.5.2</httpclient.version>
     <httpcore.version>4.4.4</httpcore.version>
@@ -71,6 +71,9 @@
 
     <!-- Set this to "true" to skip R tests. -->
     <skipRTests>false</skipRTests>
+
+    <!-- Set this to "true" to skip PySpark3 tests. -->
+    <skipPySpark3Tests>false</skipPySpark3Tests>
 
     <!--
       Properties for the copyright header style checks. Modules that use the ASF header
@@ -165,7 +168,6 @@
         <enabled>false</enabled>
       </snapshots>
     </repository>
-
   </repositories>
 
   <modules>
@@ -174,6 +176,7 @@
     <module>client-common</module>
     <module>client-http</module>
     <module>core</module>
+    <module>coverage</module>
     <module>repl</module>
     <module>rsc</module>
     <module>scala-api</module>
@@ -658,10 +661,11 @@
               <spark.ui.enabled>false</spark.ui.enabled>
               <project.version>${project.version}</project.version>
               <skipRTests>${skipRTests}</skipRTests>
+              <skipPySpark3Tests>${skipPySpark3Tests}</skipPySpark3Tests>
             </systemProperties>
             <redirectTestOutputToFile>${test.redirectToFile}</redirectTestOutputToFile>
             <useFile>${test.redirectToFile}</useFile>
-            <argLine>${argLine} -Xmx1g -XX:MaxPermSize=256m</argLine>
+            <argLine>${argLine} -Xmx2g -XX:MaxPermSize=512m</argLine>
             <failIfNoTests>false</failIfNoTests>
           </configuration>
         </plugin>
@@ -683,12 +687,13 @@
               <spark.ui.enabled>false</spark.ui.enabled>
               <project.version>${project.version}</project.version>
               <skipRTests>${skipRTests}</skipRTests>
+              <skipPySpark3Tests>${skipPySpark3Tests}</skipPySpark3Tests>
             </systemProperties>
             <stdout>D</stdout>
             <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
             <junitxml>.</junitxml>
             <filereports>WDF TestSuite.txt</filereports>
-            <argLine>${argLine} -Xmx1g -XX:MaxPermSize=256m</argLine>
+            <argLine>${argLine} -Xmx2g -XX:MaxPermSize=512m</argLine>
           </configuration>
           <executions>
             <execution>
@@ -785,7 +790,7 @@
             <configuration>
               <target>
                 <delete file="${project.build.directory}/unit-tests.log" quiet="true" />
-                <delete file="${project.build.directory}/jacoco.exec" quiet="true" />
+                <delete dir="${project.build.directory}/jacoco" quiet="true" />
                 <delete dir="${project.build.directory}/tmp" quiet="true" />
               </target>
             </configuration>
@@ -918,7 +923,7 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.7.5.201505241946</version>
+        <version>0.7.7.201606060606</version>
         <executions>
           <execution>
             <goals>
@@ -928,30 +933,6 @@
               <append>true</append>
               <destFile>${project.build.directory}/jacoco/main.exec</destFile>
             </configuration>
-          </execution>
-          <execution>
-            <id>merge-reports</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>merge</goal>
-            </goals>
-            <configuration>
-              <fileSets>
-                <fileSet>
-                  <directory>${project.build.directory}/jacoco</directory>
-                  <includes>
-                    <include>*.exec</include>
-                  </includes>
-                </fileSet>
-              </fileSets>
-            </configuration>
-          </execution>
-          <execution>
-            <id>report</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>report</goal>
-            </goals>
           </execution>
         </executions>
       </plugin>
