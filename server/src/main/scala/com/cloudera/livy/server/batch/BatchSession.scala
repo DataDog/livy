@@ -20,11 +20,12 @@ package com.cloudera.livy.server.batch
 
 import java.lang.ProcessBuilder.Redirect
 
-import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
-
 import com.cloudera.livy.LivyConf
 import com.cloudera.livy.sessions.{Session, SessionState}
-import com.cloudera.livy.utils.SparkProcessBuilder
+import com.cloudera.livy.utils.NewSparkProcessBuilder
+import org.apache.spark.launcher.SparkAppHandle
+
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
 class BatchSession(
     id: String,
@@ -34,12 +35,12 @@ class BatchSession(
     request: CreateBatchRequest)
     extends Session(id, owner, livyConf) {
 
-  private val process = {
+  private val handle = {
     val conf = prepareConf(request.conf, request.jars, request.files, request.archives,
       request.pyFiles)
     require(request.file != null, "File is required.")
 
-    val builder = new SparkProcessBuilder(livyConf)
+    val builder = new NewSparkProcessBuilder(livyConf)
     builder.conf(conf)
 
     proxyUser.foreach(builder.proxyUser)
@@ -55,8 +56,8 @@ class BatchSession(
     // Spark 1.x does not support specifying deploy mode in conf and needs special handling.
     livyConf.sparkDeployMode().foreach(builder.deployMode)
 
-    builder.redirectOutput(Redirect.PIPE)
-    builder.redirectErrorStream(true)
+//    builder.redirectOutput(Redirect.PIPE)
+//    builder.redirectErrorStream(true)
 
     val file = resolveURIs(Seq(request.file))(0)
     builder.start(Some(file), request.args)
@@ -68,33 +69,31 @@ class BatchSession(
 
   override def state: SessionState = _state
 
-  override def logLines(): IndexedSeq[String] = process.inputLines
+  override def logLines(): IndexedSeq[String] = IndexedSeq()
 
   override def stopSession(): Unit = destroyProcess()
 
   private def destroyProcess() = {
-    if (process.isAlive) {
-      process.destroy()
-      reapProcess(process.waitFor())
-    }
+    handle.stop()
+    _state = SessionState.Success()
   }
 
-  private def reapProcess(exitCode: Int) = synchronized {
-    if (_state.isActive) {
-      if (exitCode == 0) {
-        _state = SessionState.Success()
-      } else {
-        _state = SessionState.Error()
-      }
-    }
-  }
+//  private def reapProcess(exitCode: Int) = synchronized {
+//    if (_state.isActive) {
+//      if (exitCode == 0) {
+//        _state = SessionState.Success()
+//      } else {
+//        _state = SessionState.Error()
+//      }
+//    }
+//  }
 
   /** Simple daemon thread to make sure we change state when the process exits. */
-  private[this] val thread = new Thread("Batch Process Reaper") {
-    override def run(): Unit = {
-      reapProcess(process.waitFor())
-    }
-  }
-  thread.setDaemon(true)
-  thread.start()
+//  private[this] val thread = new Thread("Batch Process Reaper") {
+//    override def run(): Unit = {
+//      reapProcess(handle.waitFor())
+//    }
+//  }
+//  thread.setDaemon(true)
+//  thread.start()
 }
