@@ -108,12 +108,18 @@ public class HttpMessages {
 
     public final long id;
     public final State state;
+    public final String sparkJobId;
     public final byte[] result;
     public final String error;
 
     public JobStatus(long id, State state, byte[] result, String error) {
+      this(id, state, null, result, error);
+    }
+
+    public JobStatus(long id, State state, String sparkJobId, byte[] result, String error) {
       this.id = id;
       this.state = state;
+      this.sparkJobId = sparkJobId;
       this.error = error;
 
       // json4s, at least, seems confused about whether a "null" in the JSON payload should
@@ -121,9 +127,6 @@ public class HttpMessages {
       // valid serialized object in a byte array of size 0, translate that to null.
       this.result = (result != null && result.length > 0) ? result : null;
 
-      if (this.result != null && state != State.SUCCEEDED) {
-        throw new IllegalArgumentException("Result cannot be set unless job succeeded.");
-      }
       // The check for "result" is not completely correct, but is here to make the unit tests work.
       if (this.result == null && error != null && state != State.FAILED) {
         throw new IllegalArgumentException("Error cannot be set unless job failed.");
@@ -131,7 +134,7 @@ public class HttpMessages {
     }
 
     private JobStatus() {
-      this(-1, null, null, null);
+      this(-1, null, null, null, null);
     }
 
   }
