@@ -236,12 +236,20 @@ class InteractiveSession(
     recordActivity()
     // TODO: don't block indefinitely?
     val status = client.getBypassJobStatus(clientJobId).get()
-    new JobStatus(id, status.state, status.result, status.error)
+    new JobStatus(id, status.state, operations.getOrElse(id, null), status.result, status.error)
+  }
+
+  def jobs: Seq[JobStatus] = {
+    recordActivity()
+    operations map { case (id, sparkJobId) =>
+      val status = client.getBypassJobStatus(sparkJobId).get()
+      new JobStatus(id, status.state, sparkJobId, status.result, status.error)
+    } toSeq
   }
 
   def cancelJob(id: Long): Unit = {
     recordActivity()
-    operations.remove(id).foreach { client.cancel }
+    operations.get(id) foreach { client.cancel }
   }
 
   @tailrec
@@ -386,14 +394,14 @@ class InteractiveSession(
     opId
   }
 
-  def runClass(className: String, args: Array[String]): Long = {
+  def runClass(className: String, args: Array[String]): (Long, String) = {
     ensureRunning()
     recordActivity()
 
-    val future = client.runClass(className, args)
+    val jobId = client.runClass(className, args)
     val opId = operationCounter.incrementAndGet()
-    operations(opId) = future
-    opId
+    operations(opId) = jobId
+    (opId, jobId)
   }
 
 }

@@ -157,8 +157,8 @@ class InteractiveSessionServlet(livyConf: LivyConf)
         } else {
           req.args
         }
-        val jobId = session.runClass(req.className, args)
-        Created(new JobStatus(jobId, JobHandle.State.SENT, null, null))
+        val (opId, jobId) = session.runClass(req.className, args)
+        Created(new JobStatus(opId, JobHandle.State.SENT, jobId, null, null))
       } catch {
         case e: Throwable =>
           e.printStackTrace()
@@ -222,6 +222,12 @@ class InteractiveSessionServlet(livyConf: LivyConf)
     withSession { lsession =>
       val uri = new URI(req.uri)
       lsession.addFile(uri)
+    }
+  }
+
+  get("/:id/jobs") {
+    withSession { lsession =>
+      Ok(lsession.jobs)
     }
   }
 

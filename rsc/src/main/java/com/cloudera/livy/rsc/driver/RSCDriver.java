@@ -37,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.cloudera.livy.rsc.PingJob;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.concurrent.ScheduledFuture;
@@ -324,14 +325,24 @@ public class RSCDriver extends BaseProtocol {
     }
   }
 
+//  private void setJobGroup(JobWrapper<?> job) {
+//    if (job.getJob() instanceof PingJob) {
+//      // If it's a PingJob then it's the first dummy job and we don't need to set job group
+//      return;
+//    }
+//    jc.sc().setJobGroup(job.jobId, "Job group " + job.jobId);
+//    LOG.info("Job group " + job.jobId);
+//  }
+
   public void submit(JobWrapper<?> job) {
     if (jc != null) {
-      jc.sc().setJobGroup(job.jobId, "Job group for " + job.jobId, true);
+//      setJobGroup(job);
       job.submit(executor);
       return;
     }
     synchronized (jcLock) {
       if (jc != null) {
+//        setJobGroup(job);
         job.submit(executor);
       } else {
         LOG.info("SparkContext not yet up, queueing job request.");

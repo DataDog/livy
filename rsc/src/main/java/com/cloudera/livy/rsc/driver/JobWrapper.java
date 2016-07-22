@@ -79,6 +79,9 @@ public class JobWrapper<T> implements Callable<Void> {
   @Override
   public Void call() throws Exception {
     try {
+      driver.jobContext().sc().setJobGroup(jobId, jobId);
+      LOG.info("Job group " + jobId + " started");
+
       jobStarted();
       state = JobHandle.State.STARTED;
 
@@ -107,6 +110,10 @@ public class JobWrapper<T> implements Callable<Void> {
     this.future = executor.submit(this);
   }
 
+  public Job<T> getJob() {
+    return job;
+  }
+
   void jobDone() {
     synchronized (completed) {
       completed.incrementAndGet();
@@ -115,16 +122,18 @@ public class JobWrapper<T> implements Callable<Void> {
   }
 
   boolean cancel() {
-    state = JobHandle.State.CANCELLED;
     driver.jobContext().sc().cancelJobGroup(jobId);
-    return future == null || future.cancel(true);
+    state = JobHandle.State.CANCELLED;
+    return true;
   }
 
   protected void finished(T result, Throwable error) {
     if (error == null) {
+      LOG.info("Job group " + jobId + " finished");
       driver.jobFinished(jobId, result, null);
       state = JobHandle.State.SUCCEEDED;
-    } else {
+    } else if (state != JobHandle.State.CANCELLED) {
+      LOG.info("Job group " + jobId + " failed");
       driver.jobFinished(jobId, null, error);
       state = JobHandle.State.FAILED;
     }
