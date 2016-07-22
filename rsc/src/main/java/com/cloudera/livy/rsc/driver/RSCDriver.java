@@ -117,7 +117,7 @@ public class RSCDriver extends BaseProtocol {
 
     // Cancel any pending jobs.
     for (JobWrapper<?> job : activeJobs.values()) {
-      job.cancel(executor);
+      job.cancel();
     }
 
     try {
@@ -370,7 +370,7 @@ public class RSCDriver extends BaseProtocol {
 
   public void handle(ChannelHandlerContext ctx, CancelJob msg) {
     JobWrapper<?> job = activeJobs.get(msg.id);
-    if (job == null || !job.cancel(executor)) {
+    if (job == null || !job.cancel()) {
       LOG.info("Requested to cancel an already finished job.");
     }
   }

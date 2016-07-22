@@ -132,7 +132,7 @@ public class JobWrapper<T> implements Callable<Void> {
       LOG.info("Job group " + jobId + " finished");
       driver.jobFinished(jobId, result, null);
       state = JobHandle.State.SUCCEEDED;
-    } else {
+    } else if (state != JobHandle.State.CANCELLED) {
       LOG.info("Job group " + jobId + " failed");
       driver.jobFinished(jobId, null, error);
       state = JobHandle.State.FAILED;
