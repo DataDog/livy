@@ -428,7 +428,7 @@ public class RSCDriver extends BaseProtocol {
           case CANCELLED:
           case FAILED:
           case SUCCEEDED:
-            it.remove();
+//            it.remove();
             break;
 
           default:
