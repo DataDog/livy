@@ -289,12 +289,14 @@
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-auth</artifactId>
         <version>${hadoop.version}</version>
+        <scope>provided</scope>
       </dependency>
 
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-common</artifactId>
         <version>${hadoop.version}</version>
+        <scope>provided</scope>
         <exclusions>
           <exclusion>
             <groupId>javax.servlet</groupId>
@@ -308,12 +310,14 @@
         <artifactId>hadoop-common</artifactId>
         <classifier>tests</classifier>
         <version>${hadoop.version}</version>
+        <scope>provided</scope>
       </dependency>
 
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-client</artifactId>
         <version>${hadoop.version}</version>
+        <scope>provided</scope>
       </dependency>
 
       <dependency>
@@ -321,24 +325,28 @@
         <artifactId>hadoop-hdfs</artifactId>
         <classifier>tests</classifier>
         <version>${hadoop.version}</version>
+        <scope>provided</scope>
       </dependency>
 
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-yarn-api</artifactId>
         <version>${hadoop.version}</version>
+        <scope>provided</scope>
       </dependency>
 
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-yarn-client</artifactId>
         <version>${hadoop.version}</version>
+        <scope>provided</scope>
       </dependency>
 
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-yarn-common</artifactId>
         <version>${hadoop.version}</version>
+        <scope>provided</scope>
       </dependency>
 
       <dependency>
@@ -346,6 +354,7 @@
         <artifactId>hadoop-yarn-server-tests</artifactId>
         <classifier>tests</classifier>
         <version>${hadoop.version}</version>
+        <scope>provided</scope>
       </dependency>
 
       <dependency>
@@ -370,12 +379,14 @@
             <artifactId>javax.servlet</artifactId>
           </exclusion>
         </exclusions>
+        <scope>provided</scope>
       </dependency>
 
       <dependency>
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-hive_${scala.binary.version}</artifactId>
         <version>${spark.version}</version>
+        <scope>provided</scope>
       </dependency>
 
       <dependency>
@@ -388,18 +399,21 @@
             <artifactId>unused</artifactId>
           </exclusion>
         </exclusions>
+        <scope>provided</scope>
       </dependency>
 
       <dependency>
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-repl_${scala.binary.version}</artifactId>
         <version>${spark.version}</version>
+        <scope>provided</scope>
       </dependency>
 
       <dependency>
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-sql_${scala.binary.version}</artifactId>
         <version>${spark.version}</version>
+        <scope>provided</scope>
       </dependency>
 
       <dependency>
@@ -413,6 +427,7 @@
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-yarn_${scala.binary.version}</artifactId>
         <version>${spark.version}</version>
+        <scope>provided</scope>
       </dependency>
 
       <dependency>
