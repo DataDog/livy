@@ -67,12 +67,6 @@ object SessionState {
     override def toString: String = "error"
   }
 
-  case class Failed(time: Long = System.nanoTime()) extends SessionState {
-    override def isActive: Boolean = false
-
-    override def toString: String = "failed"
-  }
-
   case class Dead(time: Long = System.nanoTime()) extends SessionState {
     override def isActive: Boolean = false
 

@@ -76,7 +76,7 @@ class BatchSession(
           _state = SessionState.Dead()
 
         case State.FAILED =>
-          _state = SessionState.Failed()
+          _state = SessionState.Error()
 
         case State.UNKNOWN | State.CONNECTED | State.SUBMITTED | State.RUNNING => _state = SessionState.Running()
       }
