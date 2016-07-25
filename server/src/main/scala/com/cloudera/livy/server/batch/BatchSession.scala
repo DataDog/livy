@@ -24,6 +24,8 @@ import com.cloudera.livy.LivyConf
 import com.cloudera.livy.sessions.{Session, SessionState}
 import com.cloudera.livy.utils.NewSparkProcessBuilder
 import org.apache.spark.launcher.SparkAppHandle
+import org.apache.spark.launcher.SparkAppHandle.Listener
+import org.apache.spark.launcher.SparkAppHandle.State
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
@@ -59,9 +61,27 @@ class BatchSession(
 //    builder.redirectOutput(Redirect.PIPE)
 //    builder.redirectErrorStream(true)
 
-    val file = resolveURIs(Seq(request.file))(0)
+    val file = resolveURIs(Seq(request.file)).head
     builder.start(Some(file), request.args)
   }
+  handle.addListener(new Listener {
+    override def infoChanged(handle: SparkAppHandle): Unit = {}
+
+    override def stateChanged(handle: SparkAppHandle): Unit = {
+      handle.getState match {
+        case State.FINISHED =>
+          _state = SessionState.Success()
+
+        case State.KILLED =>
+          _state = SessionState.Dead()
+
+        case State.FAILED =>
+          _state = SessionState.Failed()
+
+        case State.UNKNOWN | State.CONNECTED | State.SUBMITTED | State.RUNNING => _state = SessionState.Running()
+      }
+    }
+  })
 
   protected implicit def executor: ExecutionContextExecutor = ExecutionContext.global
 
@@ -71,29 +91,7 @@ class BatchSession(
 
   override def logLines(): IndexedSeq[String] = IndexedSeq()
 
-  override def stopSession(): Unit = destroyProcess()
-
-  private def destroyProcess() = {
+  override def stopSession(): Unit = {
     handle.stop()
-    _state = SessionState.Success()
   }
-
-//  private def reapProcess(exitCode: Int) = synchronized {
-//    if (_state.isActive) {
-//      if (exitCode == 0) {
-//        _state = SessionState.Success()
-//      } else {
-//        _state = SessionState.Error()
-//      }
-//    }
-//  }
-
-  /** Simple daemon thread to make sure we change state when the process exits. */
-//  private[this] val thread = new Thread("Batch Process Reaper") {
-//    override def run(): Unit = {
-//      reapProcess(handle.waitFor())
-//    }
-//  }
-//  thread.setDaemon(true)
-//  thread.start()
 }

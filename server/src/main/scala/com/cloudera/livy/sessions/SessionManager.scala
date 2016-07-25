@@ -72,11 +72,7 @@ class SessionManager[S <: Session](val livyConf: LivyConf) extends Logging {
   }
 
   def delete(session: S): Future[Unit] = {
-    session.stop().map { case _ =>
-      synchronized {
-        sessions.remove(session.id)
-      }
-    }
+    session.stop()
   }
 
   def shutdown(): Unit = {
