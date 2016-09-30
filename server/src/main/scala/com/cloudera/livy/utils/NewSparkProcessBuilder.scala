@@ -84,6 +84,9 @@ class NewSparkProcessBuilder(livyConf: LivyConf) extends Logging {
     _name.foreach(launcher.setAppName)
     _className.foreach(launcher.setMainClass)
 
+    _conf.remove(LivyConf.SPARK_JARS).foreach(_.split(",").foreach(jar => launcher.addJar(jar)))
+    _conf.remove(LivyConf.SPARK_FILES).foreach(_.split(",").foreach(file => launcher.addFile(file)))
+
     _conf.foreach({ case (k, v) => launcher.setConf(k, v) })
 
     file.foreach(launcher.setAppResource)
@@ -94,7 +97,7 @@ class NewSparkProcessBuilder(livyConf: LivyConf) extends Logging {
 
     info(s"Running $argsString")
 
-    launcher.addAppArgs(argsString)
+    launcher.addAppArgs(args.toSeq : _*)
     launcher.startApplication()
   }
 }
