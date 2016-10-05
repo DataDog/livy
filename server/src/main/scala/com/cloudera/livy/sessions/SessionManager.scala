@@ -72,6 +72,7 @@ class SessionManager[S <: Session](val livyConf: LivyConf) extends Logging {
   }
 
   def delete(session: S): Future[Unit] = {
+    info("Stopping session: " + session.id)
     session.stop()
   }
 
@@ -85,7 +86,7 @@ class SessionManager[S <: Session](val livyConf: LivyConf) extends Logging {
   def collectGarbage(): Future[Iterable[Unit]] = {
     def expired(session: Session): Boolean = {
       val currentTime = System.nanoTime()
-      currentTime - session.lastActivity > math.max(sessionTimeout, session.timeout)
+      currentTime - session.lastActivity > sessionTimeout
     }
 
     Future.sequence(all().filter(expired).map(delete))
