@@ -57,10 +57,9 @@ abstract class Session(val id: String, val owner: String, val livyConf: LivyConf
     case SessionState.Error(time) => time
     case SessionState.Dead(time) => time
     case SessionState.Success(time) => time
+    case SessionState.Running() => System.nanoTime()
     case _ => _lastActivity
   }
-
-  val timeout: Long = TimeUnit.HOURS.toNanos(1)
 
   def state: SessionState
 
