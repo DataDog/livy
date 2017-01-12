@@ -18,14 +18,15 @@
 
 package com.cloudera.livy.server.batch
 
-import java.lang.ProcessBuilder.Redirect
-
 import com.cloudera.livy.LivyConf
 import com.cloudera.livy.sessions.{Session, SessionState}
 import com.cloudera.livy.utils.NewSparkProcessBuilder
+import org.apache.hadoop.yarn.api.records.FinalApplicationStatus
+import org.apache.hadoop.yarn.api.records.impl.pb.ApplicationIdPBImpl
+import org.apache.hadoop.yarn.client.api.YarnClient
+import org.apache.hadoop.yarn.conf.YarnConfiguration
 import org.apache.spark.launcher.SparkAppHandle
-import org.apache.spark.launcher.SparkAppHandle.Listener
-import org.apache.spark.launcher.SparkAppHandle.State
+import org.apache.spark.launcher.SparkAppHandle.{Listener, State}
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
@@ -36,6 +37,11 @@ class BatchSession(
     livyConf: LivyConf,
     request: CreateBatchRequest)
     extends Session(id, owner, livyConf) {
+
+  val yarnConf = new YarnConfiguration()
+  val yarnClient: YarnClient = YarnClient.createYarnClient()
+  yarnClient.init(yarnConf)
+  yarnClient.start()
 
   private val handle = {
     val conf = prepareConf(request.conf, request.jars, request.files, request.archives,
@@ -70,7 +76,21 @@ class BatchSession(
     override def stateChanged(handle: SparkAppHandle): Unit = {
       handle.getState match {
         case State.FINISHED =>
-          _state = SessionState.Success()
+          val yarnAppId = handle.getAppId
+          if (yarnAppId == null) {
+            _state = SessionState.Error()
+          } else {
+            val applicationReport = yarnClient.getApplicationReport(new YarnApp(yarnAppId))
+            val applicationStatus = applicationReport.getFinalApplicationStatus
+
+            _state = applicationStatus match {
+              case FinalApplicationStatus.SUCCEEDED => SessionState.Success()
+
+              case FinalApplicationStatus.KILLED => SessionState.Dead()
+
+              case _ => SessionState.Error()
+            }
+          }
 
         case State.KILLED =>
           _state = SessionState.Dead()
@@ -78,7 +98,8 @@ class BatchSession(
         case State.FAILED =>
           _state = SessionState.Error()
 
-        case State.UNKNOWN | State.CONNECTED | State.SUBMITTED | State.RUNNING => _state = SessionState.Running()
+        case State.UNKNOWN | State.CONNECTED | State.SUBMITTED | State.RUNNING =>
+          _state = SessionState.Running()
       }
     }
   })
@@ -92,6 +113,19 @@ class BatchSession(
   override def logLines(): IndexedSeq[String] = IndexedSeq()
 
   override def stopSession(): Unit = {
+    val yarnAppId = handle.getAppId
+    if (yarnAppId != null) {
+      yarnClient.killApplication(new YarnApp(yarnAppId))
+    }
     handle.stop()
+  }
+}
+
+class YarnApp(appId: String) extends ApplicationIdPBImpl {
+  appId.split("_").toList match {
+    case List(_, timestamp, id) =>
+      setClusterTimestamp(timestamp.toLong)
+      setId(id.toInt)
+      build()
   }
 }
