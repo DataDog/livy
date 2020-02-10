@@ -1,7 +1,7 @@
 Welcome to Livy
 ===============
 
-**NOTE: This is a fork of an abandoned repo! However, livy is still used by `dd-analytics`. The latest build is manually uploaded to `s3://dd-analytics-jars/livy-api-0.3.0-SNAPSHOT.jar`**
+**NOTE: This fork is no longer used! We now use upstream Livy. See the Jira card DEI-551 for more details.**
 
 Livy is an open source REST interface for interacting with `Apache Spark`_ from anywhere.
 It supports executing snippets of code or programs in a Spark context that runs locally or in `Apache Hadoop YARN`_.
